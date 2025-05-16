@@ -877,93 +877,76 @@
 
     ];
 
-const CHAT_KEY = "chatHistoryWithTtl";
-  const TTL_MS   = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
+// Load chat history on page load
+window.addEventListener("DOMContentLoaded", () => {
+  const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+  for (const { message, sender } of chatHistory) {
+    displayMessage(message, sender, false);
+  }
+});
 
-  // On load: try to load & validate history
-  window.addEventListener("DOMContentLoaded", () => {
-    const raw = localStorage.getItem(CHAT_KEY);
-    if (raw) {
-      try {
-        const { timestamp, messages } = JSON.parse(raw);
-        if (Date.now() - timestamp < TTL_MS) {
-          // still valid
-          for (const { message, sender } of messages) {
-            displayMessage(message, sender, false);
-          }
-        } else {
-          // expired
-          localStorage.removeItem(CHAT_KEY);
-        }
-      } catch (e) {
-        // parse error: reset
-        localStorage.removeItem(CHAT_KEY);
+function sendMessage() {
+  const inputField = document.getElementById("input");
+  const userMessage = inputField.value.trim();
+  if (!userMessage) return;
+
+  displayMessage(userMessage, "user");
+  saveMessage(userMessage, "user");
+
+  const botResponse = getBotResponse(userMessage);
+  displayMessage(botResponse, "bot");
+  saveMessage(botResponse, "bot");
+
+  inputField.value = "";
+}
+
+function displayMessage(message, sender, scroll = true) {
+  const chatbox = document.getElementById("chatbox");
+  const messageElem = document.createElement("div");
+  messageElem.className = `message ${sender}`;
+  messageElem.textContent = `${sender === "user" ? "You" : "Bot"}: ${message}`;
+  chatbox.appendChild(messageElem);
+
+  if (scroll) chatbox.scrollTop = chatbox.scrollHeight;
+}
+
+function getBotResponse(message) {
+  const lowerMessage = message.toLowerCase();
+  for (const data of chatbotData) {
+    for (const keyword of data.keywords) {
+      if (lowerMessage.includes(keyword.toLowerCase())) {
+        return data.response;
       }
     }
-  });
-
-  function sendMessage() {
-    const input = document.getElementById("input");
-    const text  = input.value.trim();
-    if (!text) return;
-
-    // show & save user
-    displayMessage(text, "user");
-    appendToHistory(text, "user");
-
-    // bot reply
-    const reply = getBotResponse(text);
-    displayMessage(reply, "bot");
-    appendToHistory(reply, "bot");
-
-    input.value = "";
   }
+  return "I'm not sure how to respond to that. Can you rephrase?";
+}
 
-  function displayMessage(message, sender, scroll = true) {
-    const chatbox = document.getElementById("chatbox");
-    const el = document.createElement("div");
-    el.className    = `message ${sender}`;
-    el.textContent = `${sender === "user" ? "You" : "Bot"}: ${message}`;
-    chatbox.appendChild(el);
-    if (scroll) chatbox.scrollTop = chatbox.scrollHeight;
+function saveMessage(message, sender) {
+  const chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+  chatHistory.push({ message, sender });
+  localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+}
+
+function clearChat() {
+  document.getElementById("chatbox").innerHTML = "";
+  document.getElementById("input").value = "";
+  localStorage.removeItem("chatHistory");
+}
+
+// Enter key event for sending message
+document.getElementById("input").addEventListener("keydown", function (event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    sendMessage();
   }
+});
 
-  function getBotResponse(msg) {
-    const lower = msg.toLowerCase();
-    for (const { keywords, response } of chatbotData) {
-      if (keywords.some(k => lower.includes(k.toLowerCase()))) {
-        return response;
-      }
-    }
-    return "I'm not sure how to respond to that. Can you rephrase?";
-  }
-
-  // Append one message + sender, and refresh timestamp
-  function appendToHistory(message, sender) {
-    let record = { timestamp: Date.now(), messages: [] };
-    try {
-      record = JSON.parse(localStorage.getItem(CHAT_KEY)) || record;
-    } catch { /* ignore parse errors */ }
-
-    record.messages.push({ message, sender });
-    record.timestamp = record.timestamp || Date.now();
-    localStorage.setItem(CHAT_KEY, JSON.stringify(record));
-  }
-
-  // Clear both UI and storage
-  function clearChat() {
-    document.getElementById("chatbox").innerHTML = "";
-    document.getElementById("input").value    = "";
-    localStorage.removeItem(CHAT_KEY);
-  }
-
-  // send on Enter
-  document.getElementById("input").addEventListener("keydown", e => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      sendMessage();
-    }
-  });
+// Prevent auto-refresh logic
+if (!sessionStorage.getItem("visitedOnce")) {
+  sessionStorage.setItem("visitedOnce", "true");
+  // First visit logic can be added here
+}
 
 
   </script>
