@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Keyword-Based Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #ffffff;
+      color: #000000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    h2 {
+      color: #2F4F6F;
+    }
+
+    #chatbox {
+      width: 100%;
+      max-width: 500px;
+      height: 400px;
+      border: 1px solid #2F4F6F;
+      background: rgba(255, 255, 255, 0.49);
+      overflow-y: auto;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px #2F4F6F;
+    }
+
+    .message {
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border-radius: 6px;
+    }
+
+    .user {
+      background-color: #1E3A8A;
+      color: #ffffff;
+      align-self: flex-end;
+    }
+
+    .bot {
+      background-color: #2563EB;
+      color: #ffffff;
+      align-self: flex-start;
+    }
+
+    #userInput {
+      display: flex;
+      width: 100%;
+      max-width: 500px;
+      gap: 0.5rem;
+    }
+
+    #input {
+      flex-grow: 1;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #2F4F6F;
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.49);
+      color: #000;
+      box-shadow: 0 2px 4px #2F4F6F;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #2F4F6F;
+      border-radius: 8px;
+      background-color: #3B82F6;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #2563EB;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Tenant Analyzer Chatbot</h2>
+  <div id="chatbox"></div>
+
+  <div id="userInput">
+    <input type="text" id="input" placeholder="Ask something...">
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="clearChat()">Clear</button>
+  </div>
+
+  <script>
+    const chatbotData = [
+
+      //Tenant ananlysis page
+      { keywords: ["total environments", "how many environments","environments","environment"], response: "There are 2 total environments." },
+      { keywords: ["Unallocated licenses", "how many total Unallocated licenses", "count of Unallocated licenses", "total Unallocated licenses","unallocated licens","Unallocatedlicens"], response: "There are 17 total allocated licenses." },
+      { keywords: ["allocated licenses", "how many total allocated licenses, count of allocated licenses, totl allocated licenses"], response: "There are 6 total Unallocated licenses." },
+      { keywords: ["total user count", "how many users", "number of users"], response: "The total user count is 628." },
+      { keywords: ["total licenses in use", "licenses used"], response: "There are 23 total licenses in use." },
+      { keywords: ["service plans", "how many service plans"], response: "There are 138 service plans listed." },
+      { keywords: ["global admin", "admin accounts", "how many global admins"], response: "There are 37 global admin accounts." },
+      { keywords: ["sku ids", "number of skus", "total sku"], response: "There are 54 total SKU IDs." },
+      { keywords: ["total consumption", "consumption in mb", "data usage"], response: "Total consumption is 1.204K MB." },
+      { keywords: ["total role count", "how many roles", "number of roles"], response: "There are 33 total roles." },
+      { keywords: ["unallocated licenses", "how many unallocated"], response: "There are 23 unallocated licenses." },
+      { keywords: ["licenses assigned", "assigned licenses"], response: "77 licenses are assigned." },
+      { keywords: ["storage consumption", "environment storage", "storage usage"], response: "Both environments show similar storage usage (~600 MB)." },
+      { keywords: ["license usage by company", "which company uses licenses"], response: "One company dominates license usage with over 600 users." },
+      { keywords: ["percentage of licenses active", "active licenses percent"], response: "Approximately 88.5% of licenses are active." },
+      { keywords: ["percentage of licenses expired", "expired licenses percent"], response: "Approximately 11.5% of licenses are expired." },
+      { keywords: ["service plans shown", "some service plans"], response: "Some of the service plans include: Project_Ops_Viva, D365_Service_Enterprise, PowerApps_P2, Exchange_S_Standard, M365_E3." },
+      { keywords: ["tenant directory plan", "details in directory plan"], response: "The Tenant Directory Plan section includes: Subscription name, Directory name, License type, Object ID, License status, Active service plans, License expiration and assignment." },
+      { keywords: ["columns in tenant service plan", "tenant plan data table columns"], response: "Columns include: SKU Part Number, Total Assigned, Enabled, Warning, Expired, Disabled, Expiring Soon, Expired Count." },
+      { keywords: ["most assignments", "most assigned sku", "sku with most users"], response: "ACT_PLAN_TRIAL has the most assignments with 3000 assigned." },
+      { keywords: ["filter options", "available filters", "filters on left panel"], response: "Filter options include: Tenant Name, Environment Name, License Name." },
+      { keywords: ["tenant storage total quota", "how much total quota", "tenant total quota"], response: "The Tenant Storage Total Quota is 300000 MB." },
+      { keywords: ["tenant storage quota remaining", "quota remaining"], response: "296376 MB of quota is remaining." },
+      { keywords: ["tenant storage used quota", "used quota"], response: "3624 MB of quota is used." },
+      { keywords: ["licenses applied for user", "license apply for user", "user license count"], response: "22 licenses are applied for users." },
+      { keywords: ["licenses applied for company", "license apply for company", "company license count"], response: "1 license is applied for the company." },
+      { keywords: ["enabled licenses", "licenses enabled", "active licenses"], response: "21 licenses are enabled." },
+      { keywords: ["suspended licenses", "licenses suspended", "inactive licenses"], response: "2 licenses are suspended." },
+      {
+    keywords: ["total environment", "total environments", "number of environments", "env count", "environment count", "environments", "environment"],
+    response: "There are 2 total environments."
+  },
+  {
+    keywords: ["total user", "total users", "number of users", "user count", "how many users", "users", "user"],
+    response: "The total user count is 628."
+  },
+  {
+    keywords: ["total license", "total licenses", "license count", "licenses used", "number of licenses", "licenses", "license"],
+    response: "There are 23 total licenses."
+  },
+  {
+    keywords: ["total service plan", "total service plans", "service plans", "number of service plans", "service plan count"],
+    response: "There are 138 total service plans."
+  },
+  {
+    keywords: ["total onedrive account", "onedrive accounts", "number of onedrive accounts", "onedrive account", "onedrive count"],
+    response: "There are 9 total OneDrive accounts."
+  },
+  {
+    keywords: ["total team", "total teams", "teams", "team count", "number of teams"],
+    response: "There are 54 total teams."
+  },
+  {
+    keywords: ["total group", "total groups", "group count", "groups", "number of groups"],
+    response: "There are 1.204K total groups."
+  },
+  {
+    keywords: ["total role", "total roles", "roles", "number of roles", "role count"],
+    response: "There are 33 total roles."
+  },
+  {
+    keywords: ["allocated license", "allocated licenses", "number of allocated licenses", "how many allocated licenses", "assigned licenses", "assigned license"],
+    response: "6 licenses are allocated."
+  },
+  {
+    keywords: ["unallocated license", "unallocated licenses", "licenses not assigned", "unassigned licenses", "number of unallocated licenses"],
+    response: "17 licenses are unallocated."
+  },
+  {
+    keywords: ["license apply user", "licenses applied for user", "user license apply", "licenses user applied", "user licenses applied"],
+    response: "22 licenses are applied to users."
+  },
+  {
+    keywords: ["license apply company", "licenses applied for company", "company license apply", "company licenses applied"],
+    response: "1 license is applied to a company."
+  },
+  {
+    keywords: ["total quota", "tenant total quota", "tenant storage total quota", "how much total quota", "overall storage quota"],
+    response: "The total quota is 300000 MB."
+  },
+  {
+    keywords: ["used quota", "storage used", "tenant storage used", "used storage quota", "used space", "quota usage"],
+    response: "3624 MB of quota is used."
+  },
+  {
+    keywords: ["remaining quota", "quota remaining", "available quota", "tenant storage remaining", "free storage quota"],
+    response: "296376 MB of quota is remaining."
+  },
+  {
+    keywords: ["enabled licenses", "licenses enabled", "active licenses", "number of enabled licenses"],
+    response: "21 licenses are enabled."
+  },
+  {
+    keywords: ["suspended licenses", "licenses suspended", "inactive licenses", "disabled licenses"],
+    response: "2 licenses are suspended."
+  },
+
+      //Environment ananlysis page
+      { keywords: ["total environments", "how many environments"], response: "There are 2 total environments." },
+      { keywords: ["total rules", "how many rules"], response: "There are 20 total rules." },
+      { keywords: ["total entities", "how many entities"], response: "There are 10 total entities." },
+      { keywords: ["total solutions", "how many solutions"], response: "There are 521 total solutions." },
+      { keywords: ["environment over time", "environments created over years"], response: "Environments were created in 2019 and 2024." },
+      { keywords: ["environment creation type", "how were environments created"], response: "There is one environment created from CDSDefault and one from Other." },
+      { keywords: ["environment details", "list of environments", "environments table"], response: "Two environments are shown: 'Netwoven Demo (default)' (Default type) and 'PowerPagesDeveloper' (Developer type). Both have succeeded provisioning state." },
+      { keywords: ["default environment", "which is default"], response: "'Netwoven Demo (default)' is the default environment." },
+      { keywords: ["developer environment", "which is developer type"], response: "'PowerPagesDeveloper' is a developer environment." },
+      { keywords: ["solution visibility", "how many visible solutions"], response: "There are 477 invisible solutions and 44 visible solutions." },
+      { keywords: ["visible solutions", "how many solutions are visible"], response: "44 solutions are visible." },
+      { keywords: ["invisible solutions", "hidden solutions"], response: "477 solutions are invisible." },
+      { keywords: ["managed vs unmanaged", "solution types"], response: "There are 507 managed solutions and 14 unmanaged solutions." },
+      { keywords: ["managed solutions"], response: "There are 507 managed solutions." },
+      { keywords: ["unmanaged solutions"], response: "There are 14 unmanaged solutions." },
+      { keywords: ["business rule per entity", "entity business rule count"], response: "Entities like chat, mdyn_solutionhistory, and mdyn_analysisuser have the most business rules, each having 4." },
+      { keywords: ["entities with most rules", "which entity has most business rules"], response: "The 'chat' entity and some others have the highest number of business rules, with 4 each." },
+      { keywords: ["business rule details", "business rules listed", "entity rule list"], response: "Example rules include 'Analysis Result Message Display' for 'mdyn_analysisuser' and 'Lock Linked By' for 'chat' entity." },
+      { keywords: ["business rules by domain", "domain business rules"], response: "Two domains are listed: 'OquBIStack' has 12 rules (57.1%) and 'OquBIStack2' has 9 rules (42.9%)." },
+      { keywords: ["which domain has most rules"], response: "'OquBIStack' domain has the most business rules with 12 entries." },
+      { keywords: ["filter options", "available filters", "filters on left panel"], response: "Filter options available: Environment Name, Solution Name, Rule, Domain Name." },
+      { keywords: ["total environment", "how many environments"], response: "2 total environments." },
+      { keywords: ["total rule", "how many rules"], response: "20 total rules." },
+      { keywords: ["total entity", "how many entities"], response: "10 total entities." },
+      { keywords: ["total solution", "total solutions", "how many total solutions", "how many total solution"], response: "521 total solutions." },
+      { keywords: ["solutions visible", "visible solutions", "how many solutions are visible", "how many solution are visible"], response: "44 solutions are visible." },
+      { keywords: ["solutions invisible", "invisible solutions", "how many solutions are invisible", "how many solution are invisible"], response: "477 solutions are invisible." },
+      { keywords: ["managed solutions", "solutions managed", "how many solutions are managed", "how many solution are managed"], response: "505 solutions are managed." },
+      { keywords: ["unmanaged solutions", "solutions unmanaged", "how many solutions are unmanaged", "how many solution are unmanaged"], response: "16 solutions are unmanaged." },
+{
+    keywords: ["total environment", "total environments", "number of environments", "env count", "environment count", "environments", "environment"],
+    response: "There are 2 total environments."
+  },
+  {
+    keywords: ["total rule", "total rules", "rules", "rule count", "number of rules"],
+    response: "There are 20 total rules."
+  },
+  {
+    keywords: ["total entity", "total entities", "entity count", "entities", "number of entities"],
+    response: "There are 10 total entities."
+  },
+  {
+    keywords: ["total solution", "total solutions", "solution count", "solutions", "number of solutions"],
+    response: "There are 521 total solutions."
+  },
+  {
+    keywords: ["environment over time", "environments by year", "environment years", "environments created per year"],
+    response: "1 environment was created in 2019 and 1 in 2025."
+  },
+  {
+    keywords: ["environment creation type", "type of environment creation", "environment type", "creation type", "default environment", "user environment"],
+    response: "Environment creation types are evenly split between DefaultTenant and User."
+  },
+  {
+    keywords: ["solution visibility", "visible solution", "invisible solution", "solution visible", "solution invisibility", "visibility of solutions"],
+    response: "477 solutions are invisible and 44 are visible."
+  },
+  {
+    keywords: ["managed solutions", "unmanaged solutions", "solution type", "number of managed", "number of unmanaged", "solution management"],
+    response: "There are 505 managed solutions and 16 unmanaged solutions."
+  },
+      //User analysis page
+      { keywords: ["total users", "how many users", "user count"], response: "The total number of users is 628." },
+      { keywords: ["total members", "how many members"], response: "The total number of members is 324." },
+      { keywords: ["total job roles", "how many roles", "job role count"], response: "There are 142 total job roles." },
+      { keywords: ["account status breakdown", "active vs inactive users", "how many active users"], response: "There are 583 active users and 45 inactive users." },
+      { keywords: ["job title breakdown", "users by job title"], response: "The job title with the highest count is 'Contractor' with 122 users." },
+      { keywords: ["user details", "show user table", "user info"], response: "The user details table shows Display Name, Account Status, Job Title, User Principal Name, Admin status, and User Preferred MFA." },
+      { keywords: ["admin breakdown", "how many admins", "admin users"], response: "There are 217 users (47.4%) who are 'Not Admin' and 54 users (11.2%) who are 'Admin'." },
+      { keywords: ["preferred secondary authentication", "secondary auth method", "authentication method"], response: "The most preferred secondary authentication method is 'none' used by 556 users." },
+      { keywords: ["sspr registration", "self service password reset", "password reset registration"], response: "265 users (63.4%) are registered for SSPR, while 153 (36.6%) are not." },
+      { keywords: ["users with mfa", "mfa enabled users", "multi-factor authentication"], response: "Only 1 user is using MFA." },
+      { keywords: ["passwordless capability", "users with passwordless login"], response: "0 users are using passwordless capability." },
+      { keywords: ["size distribution", "user size in bytes", "storage size"], response: "The majority of user sizes are below 600000 bytes." },
+      { keywords: ["filters available", "filter options", "left panel filters"], response: "Available filter options include: User Name and Group Name." },
+      { keywords: ["sspr status", "self service password reset", "sspr registered users"], response: "265 users (63.4%) are registered for Self-Service Password Reset (SSPR), while 153 (36.6%) are not." },
+      { keywords: ["users with mfa", "multi factor authentication", "mfa enabled"], response: "Only 1 user is using Multi-Factor Authentication (MFA)." },
+      { keywords: ["passwordless login", "users with passwordless", "passwordless capability"], response: "0 users are using passwordless login capability." },
+      { keywords: ["size distribution", "byte size distribution", "mailbox size"], response: "Most users fall within the 0–600000 byte range for mailbox storage." },
+      { keywords: ["total item distribution", "mailbox items", "mailbox folders"], response: "Inbox has 229581 items, Sent Items has 45642, and other folders like Deleted Items, Drafts, and Junk Email have fewer items." },
+      { keywords: ["unread items", "users with unread", "unread mailbox items"], response: "Inbox has the highest unread count at 0.304M. Other folders have significantly fewer unread items." },
+      { keywords: ["user license plan details", "service plan per user", "license plan details"], response: "License plan details include License Name, License Status, and Service Plan Name for each user." },
+      { keywords: ["child folder distribution", "child folders", "folder breakdown"], response: "One user has 600 folders, while others have fewer. The majority have very few child folders." },
+      { keywords: ["onedrive quota", "onedrive usage", "onedrive space used"], response: "User Franklin has a total quota of 10717300, with 1099313277776 used and 1092481437736 remaining." },
+      { keywords: ["onedrive type", "onedrive type distribution", "distribution of onedrive types"], response: "The OneDrive Type Distribution chart shows different storage types used, with variation among users." },
+      { keywords: ["filters", "filter options", "left side filters"], response: "Filter options available are: User Name and Group Name." },
+      { keywords: ["onedrive quota", "onedrive total quota", "onedrive usage"], response: "Each user has a total quota of 1099511627776 bytes for OneDrive." },
+      { keywords: ["onedrive used quota", "onedrive space used", "onedrive used storage"], response: "Franklin and Vijay have the highest usage, using up over 1 TB of their OneDrive quota." },
+      { keywords: ["onedrive remaining quota", "onedrive available space", "onedrive left storage"], response: "Remaining quota is calculated per user, with most having over 1 TB available." },
+      { keywords: ["onedrive type distribution", "distribution of onedrive types", "onedrive storage type"], response: "The OneDrive type distribution is 100% set to 'OneDrive'." },
+      { keywords: ["number of members by group", "group membership count", "members in each group"], response: "Most groups have between 1 to 5 members, with a few having over 80 members." },
+      { keywords: ["group member details", "group members table", "group member information"], response: "Group member details include Group Name, Member Name, Email, Job Title, and Preferred Language." },
+      { keywords: ["group details", "group type", "list of groups"], response: "Groups are categorized as Microsoft 365 Groups or Security Groups with unique Group Names and Types." },
+      { keywords: ["security group breakdown", "security group vs m365", "security group chart"], response: "There are 1488 members in Security Groups and 241 in Microsoft 365 Groups." },
+      { keywords: ["security enabled breakdown", "security enabled true false", "enabled security groups"], response: "There are 1065 groups marked as security-enabled and 124 that are not." },
+      { keywords: ["total members of security group", "security group total members", "members in security group"], response: "Security Groups have a total of 228 members, while Microsoft 365 Groups have 44." },
+      { keywords: ["active accounts", "active account", "total active users", "total active user"], response: "583 active accounts." },
+      { keywords: ["inactive accounts", "inactive account", "total inactive users", "total inactive user"], response: "45 inactive accounts." },
+      { keywords: ["users are admin", "total admin", "admin users"], response: "544 users are admins." },
+      { keywords: ["users are not admin", "non-admin users", "not admin users"], response: "27 users are not admins." },
+      { keywords: ["users have sspr registered", "sspr registered users"], response: "38 users have SSPR registered." },
+      { keywords: ["users have not sspr registered", "not sspr registered users"], response: "38 users have not registered for SSPR." },
+      { keywords: ["private teams", "teams are private"], response: "45 teams are private." },
+      { keywords: ["public teams", "teams are public"], response: "9 teams are public." },
+      { keywords: ["archived teams", "teams archived", "teams are archived"], response: "8 teams are archived." },
+      { keywords: ["non archived teams", "teams not archived", "teams are not archived"], response: "102 teams are not archived." },
+      { keywords: ["group with email enabled", "email enabled groups"], response: "1171 groups have email enabled." },
+      { keywords: ["group with not email enabled", "email not enabled groups", "groups without email"], response: "40 groups do not have email enabled." },
+      { keywords: ["filters", "available filters", "left panel filters"], response: "Filters available include: Group Name." },
+      {
+          keywords: ["admin breakdown", "number of admins", "how many admins", "admin vs non-admin"],
+           response: "There are 27 admins (4.73%) and 544 non-admins (95.27%)."
+      },
+      {
+        keywords: ["preferred secondary authentication", "secondary authentication methods", "authentication method usage"],
+        response: "The preferred secondary authentication methods are: none (559 users), push (5 users), sms (5 users), and voiceMobile (2 users)."
+      },
+      {
+        keywords: ["most common secondary authentication", "most used authentication method"],
+        response: "The most commonly used secondary authentication method is 'none', used by 559 users."
+      },
+      {
+        keywords: ["least used secondary authentication", "least common authentication method"],
+        response: "The least used secondary authentication method is 'voiceMobile', used by 2 users."
+      },
+      {
+        keywords: ["sspr registration", "self-service password reset", "password reset registration", "how many users registered for sspr"],
+        response: "There are 38 users (6.65%) registered for Self-Service Password Reset (SSPR) and 533 users (93.35%) who are not registered."
+      },
+      {
+        keywords: ["users with mfa", "mfa users", "multi-factor authentication", "how many users have mfa"],
+        response: "There is 1 user with Multi-Factor Authentication (MFA), and that user is Viraj Bais."
+      },
+      {
+    keywords: [
+      "total users",
+      "user count",
+      "number of users",
+      "user"
+    ],
+    response: "There are 628 total users."
+  },
+  {
+    keywords: [
+      "total members",
+      "member count",
+      "number of members",
+      "member"
+    ],
+    response: "There are 336 total members."
+  },
+  {
+    keywords: [
+      "total job roles",
+      "job role count",
+      "number of job roles",
+      "job roles",
+      "job role"
+    ],
+    response: "There are 142 total job roles."
+  },
+  {
+    keywords: [
+      "active users",
+      "users active",
+      "enabled users",
+      "user enabled"
+    ],
+    response: "There are 583 active users."
+  },
+  {
+    keywords: [
+      "inactive users",
+      "users inactive",
+      "disabled users",
+      "user inactive"
+    ],
+    response: "There are 45 inactive users."
+  },
+  {
+    keywords: [
+      "admins",
+      "admin users",
+      "user admin",
+      "admin count"
+    ],
+    response: "There are 27 admin users."
+  },
+  {
+    keywords: [
+      "non-admins",
+      "not admin",
+      "non admin users"
+    ],
+    response: "There are 544 users who are not admins."
+  },
+  {
+    keywords: [
+      "passwordless enabled",
+      "passwordless users",
+      "passwordless capability"
+    ],
+    response: "Only 1 user has passwordless capability enabled."
+  },
+  {
+    keywords: [
+      "passwordless disabled",
+      "no passwordless",
+      "passwordless false"
+    ],
+    response: "There are 570 users without passwordless capability."
+  },
+  {
+    keywords: [
+      "security groups",
+      "number of security groups",
+      "security group count"
+    ],
+    response: "There are 963 security groups."
+  },
+  {
+    keywords: [
+      "microsoft 365 groups",
+      "m365 groups",
+      "365 group count",
+      "office 365 groups"
+    ],
+    response: "There are 241 Microsoft 365 groups."
+  },
+  {
+    keywords: [
+      "security enabled",
+      "enabled security groups"
+    ],
+    response: "There are 1085 security-enabled groups."
+  },
+  {
+    keywords: [
+      "security not enabled",
+      "disabled security",
+      "security false"
+    ],
+    response: "There are 126 security-disabled groups."
+  },
+  {
+    keywords: [
+      "security group members",
+      "members in security groups",
+      "security group membership"
+    ],
+    response: "There are 290 members in security groups."
+  },
+  {
+    keywords: [
+      "microsoft 365 group members",
+      "members in microsoft 365 groups",
+      "365 group members"
+    ],
+    response: "There are 46 members in Microsoft 365 groups."
+  }
+,
+
+      //Team analysis page
+      { keywords: ["total teams", "how many teams", "number of teams","team","teams"], response: "There are 54 total teams." },
+      { keywords: ["total team members", "team members count", "number of members"], response: "There are 159 total team members." },
+      { keywords: ["total team channels", "how many channels", "team channels count"], response: "There are 110 total team channels." },
+      { keywords: ["total roles", "how many roles", "number of roles"], response: "There are 2 total roles." },
+      { keywords: ["team growth", "teams growth over time"], response: "The team growth over time shows a total of 54 teams." },
+      { keywords: ["team visibility", "public vs private", "teams by visibility"], response: "Out of 54 teams, 12 are public (22.22%) and 42 are private (77.78%)." },
+      { keywords: ["teams are public","how many team are public"],response:"There are 9 team are public."},
+      { keywords: ["teams are private","how many team are private"],response:"There are 45 team are private."},
+      { keywords: ["team details", "teams table", "list of teams"], response: "Team details include team name, visibility, and creation date/time." },
+      { keywords: ["team member details", "member info", "member table"], response: "Team member details include member name, email, job title, preferred language, and user principal name." },
+      { keywords: ["number of teams by role", "teams by role"], response: "There are 153 teams with owner role and 6 teams with guest role." },
+      { keywords: ["archived teams", "archived teams channel"], response: "There are  8 archived teams." },
+      { keywords: ["number of members by team", "members per team"], response: "The number of members per team is shown in the bottom bar chart." },
+      { keywords: ["filters", "available filters", "team name filter"], response: "The dashboard allows filtering by team name using the dropdown on the left panel." },
+      { keywords: ["team owner", "team created by", "who created the team"], response: "Each team entry includes a 'Team Owner' column indicating the creator or owner of the team." },
+      { keywords: ["total teams", "how many teams", "number of teams"], response: "There are 54 total teams." },
+      { keywords: ["total team members", "how many team members", "number of members"], response: "There are 159 total team members." },
+      { keywords: ["total team channels", "how many team channels", "number of channels"], response: "There are 110 total team channels." },
+      { keywords: ["total roles", "number of roles", "team roles"], response: "There are 2 total roles: owner and guest." },
+      { keywords: ["non archived teams", "active teams", "not archived"], response: "There are 102 non-archived teams." },
+      { keywords: ["archived teams", "how many archived teams"], response: "There are 8 archived teams." },
+      { keywords: ["teams growth", "team growth over time", "team creation trend"], response: "Team growth over time shows how many teams were created in different timeframes, with 8 created in the peak period." },
+      { keywords: ["team visibility", "private vs public teams", "visibility distribution"], response: "Out of 54 teams, 42 are private (77.78%) and 12 are public (22.22%)." },
+      { keywords: ["members per team", "number of members by team", "member distribution"], response: "The highest number of members in a team is 17, and other teams vary down to 1 member each." },
+      { keywords: ["team channels growth", "channel creation trend", "channels over time"], response: "Channel growth over time displays how many channels were created in different periods, with a maximum of 8 created during peak." },
+      { keywords: ["channel membership type", "membership types", "channel types"], response: "There are 104 standard channels, 1 private channel, and 1 shared channel with external/federated users." },
+      { keywords: ["favorite teams", "favorite teams channel status"], response: "Out of 110 team channels, 12 are marked as favorite by default, while 98 are not." },
+      { keywords: ["channel details", "channel table", "channel name"], response: "The Channel Details section includes: Channel Name, Archived Status, Membership Type." },
+      { keywords: ["standard channels", "how many standard channels"], response: "There are 104 standard channels." },
+      { keywords: ["private channels", "how many private channels"], response: "There is 1 private channel." },
+      { keywords: ["shared or federated channels", "federated users", "external shared"], response: "There is 1 channel with shared or external/federated user access." },
+      { keywords: ["filters", "available filters", "team name filter"], response: "Filtering is available by team name using the dropdown on the left panel." },
+      
+      //Group analysis page
+      { keywords: ["total members", "how many members", "group members count"], response: "There are 338 total members." },
+      { keywords: ["total groups", "number of groups", "how many groups","group","groups"], response: "There are 1.211K total groups." },
+      { keywords: ["group types", "total group types", "how many group types"], response: "There are 3 total group types." },
+      { keywords: ["group type distribution", "how many unified groups"], response: "There are 241 Unified groups." },
+      { keywords: ["group type distribution", "how many unknown groups"], response: "There are 963 Unknown group types." },
+      { keywords: ["group type distribution", "dynamic membership groups"], response: "There are 7 DynamicMembership groups." },
+      { keywords: ["groups with email enabled", "email supported groups","how may groups are email enabled","how may group are email enabled"], response: "1171 groups have email support enabled." },
+      { keywords: ["groups with no email", "email not supported groups"], response: "40 groups do not have email support." },
+      { keywords: ["group renewed per month", "monthly group renewal"], response: "Group renewals vary by month, with the highest being around 28 renewals." },
+      { keywords: ["group name", "group details", "group table"], response: "The Group Details section shows group names, emails, email support status, security status, and group type." },
+      { keywords: ["group member details", "group members info"], response: "The Group Member Details section lists member names, emails, job titles, and user principal names." },
+      { keywords: ["job titles", "members and job titles"], response: "Examples of job titles include Vice President of Solution Sales, Technical Officer, and Senior Technical Architect." },
+      { keywords: ["member email", "user email"], response: "Member emails are shown in the Group Member Details table, e.g., asutton@netwoven.com." },
+      { keywords: ["filters", "left panel filter", "group name filter"], response: "The dashboard allows filtering by Group Name using the dropdown on the left panel." },
+      
+      //Power app analysis page
+      { keywords: ["total apps", "how many power apps","how many power app","power apps","power apps"], response: "There are 5 total Power Apps." },
+      { keywords: ["total connection references", "connection references count"], response: "There are 3 total connection references." },
+      { keywords: ["power app summary", "power platform app summary"], response: "The Power Platform App Summary shows 5 Power Apps and 2 Power Pages." },
+      { keywords: ["app type", "distribution of apps by type","how many canvas app","how many classiccanvas app"], response: "All 5 apps are of type ClassicCanvasApp." }, 
+      { keywords: ["count of power page", "how many power page"], response: "There are 2 power page." },
+      { keywords: ["apps with component library", "component library apps"], response: "2 apps (40%) use component libraries." },
+      { keywords: ["apps without component library", "no component library apps"], response: "3 apps (60%) do not use component libraries." },
+      { keywords: ["component app distribution", "apps using components"], response: "2 apps use no components, 1 app uses HasComponent usage, and 1 has other component usage." },
+      { keywords: ["form factor tags", "app count by form factor"], response: "All 5 apps are tagged with Tablet as the primary form factor." },
+      { keywords: ["app names", "list of apps"], response: "Examples of apps include Employee Journey App, Jive Migration Mapping - SPP, Jive Migration UAT Tracker App - SOD, Migration Mapping Application Final, and Migration Validation Tracker Final." },
+      { keywords: ["app types listed", "types of apps"], response: "All listed apps are of type ClassicCanvasApp." },
+      { keywords: ["owner email", "app owners"], response: "Examples of owner emails are: schatterjee@demo.netwoven.com and Soma.Choudhuri@demo.netwoven.com." },
+      { keywords: ["last modified date", "app modified date"], response: "Apps were last modified between 1/5/2024 and 1/17/2024." },
+      { keywords: ["app created date", "when were apps created"], response: "Apps were created between 12/7/2023 and 1/3/2024." },
+      { keywords: ["apps by owner email", "distribution by owner email"], response: "Each owner has between 1 and 3 apps assigned to them." },
+      { keywords: ["apps over time", "power apps growth", "app creation over time"], response: "Apps were created over several days, with consistent distribution between 12/7/2023 and 1/3/2024." },
+      { keywords: ["filters", "filter options", "left panel filters"], response: "Available filters include App Name and Connection References." },
+      {
+        keywords: ["apps by shared users", "shared users", "most shared apps"],
+        response: "The most shared apps include 'Java Migration Mapping Application Final', 'Java Migration Mapping - SP', and 'Employee Journey App'."
+      },
+      {
+        keywords: ["shared users count", "number of users sharing apps"],
+        response: "'Java Migration Mapping Application Final' was shared by 7 users, the highest among all listed apps."
+      },
+      {
+        keywords: ["connection references", "data sources", "connection details"],
+        response: "Connection references include SharePoint, LogicFlows, and Office365Users with sources like GetSPItem_REST and Office365Users."
+      },
+      {
+        keywords: ["data source overview", "types of data sources", "data source usage"],
+        response: "Most data sources are GetSPItem_REST, GetSPItem_REST_1 and Office365Users, with GetSPItem_REST being dominant."
+      },
+      {
+        keywords: ["on-premise connection status", "connection counts", "on-premise apps"],
+        response: "Some apps use on-premise connections, with several apps using 1-2 on-premise connections."
+      },
+      {
+        keywords: ["logic flow", "logic flow breakdown", "apps with logic flows"],
+        response: "All listed apps have 2 uninitiated logic flows and are classified under ClassicCanvasApp type."
+      },
+      {
+        keywords: ["alm distribution", "alm status", "application lifecycle"],
+        response: "ALM statuses include 'Environment', 'Solution', and 'Unclassified', with 'Unclassified' having the largest share."
+      },
+      {
+        keywords: ["external service usage", "apps using external services", "pcf external service"],
+        response: "Multiple apps are shown to be using PCF external services with varying levels of usage."
+      },
+      {
+        keywords: ["premium api", "uses premium api", "premium features"],
+        response: "No apps are using Premium APIs, as indicated by the 'Uses Premium API: false' note."
+      },
+      {
+        keywords: ["number of apps", "total apps", "app count"],
+        response: "There are a total of 5 apps represented in the dashboard."
+      },
+      {
+        keywords: ["tier distribution", "flow tier", "flow premium tier"],
+        response: "All flows are categorized under the 'Premium' tier."
+      },
+      {
+        keywords: ["enabled flows", "disabled flows", "flow status"],
+        response: "All flows in this report are enabled."
+      },
+      {
+        keywords: ["flows with failure alerts", "alerted flows", "failure alert status"],
+        response: "All flows have failure alerts enabled."
+      },
+      {
+        keywords: ["action types", "action types in flows", "initialize and operation actions"],
+        response: "Flows use two types of actions: 'InitializeVariable' and 'Operation/ConnectorAction', each occurring once."
+      },
+      {
+        keywords: ["user type distribution", "flow owners", "user roles"],
+        response: "All flows are owned by users with the 'Owner' role."
+      },
+      {
+        keywords: ["managed distribution", "managed flows", "managed status"],
+        response: "No flows are marked as 'Managed'."
+      },
+      {
+        keywords: ["flow type", "flow type distribution", "instant cloud flow"],
+        response: "The only type of flow present is 'Instant cloud flow'."
+      },
+
+      //Power automate analysis
+      {
+        keywords: ["power automate flows", "cpower automate flows", "flows","flow"],
+        response: "There are total 1 Power automate flow is available."
+      },
+      {
+        keywords: ["power automate connector tier", "connector tier", "premium connector"],
+        response: "The connector used is classified under the 'Premium' tier."
+      },
+      {
+        keywords: ["connector source", "source breakdown", "embedded connector"],
+        response: "All connectors are sourced from 'Embedded'."
+      },
+      {
+        keywords: ["connector details", "api name", "connector metadata"],
+        response: "The connector used is 'MicrosoftDataverse' with API name 'commondataserviceforapps' and it is embedded and premium tier."
+      },
+      {
+        keywords: ["flow details", "flow metadata", "flow type info"],
+        response: "The flow named 'test' is of type 'Instant cloud flow', not managed, and has failure alert set to true."
+      },
+      {
+        keywords: ["filters", "filter options", "left panel filters"],
+        response: "Available filter is by 'Flow Type' using the dropdown on the left panel."
+      },
+
+      //power page analysis
+      {
+        keywords: ["total power pages", "number of power pages", "power page count","power pages","power page"],
+        response: "There are a total of 2 Power Pages."
+      },
+      {
+        keywords: ["total domains", "domain count", "how many domains"],
+        response: "There are 2 unique domains used across the Power Pages."
+      },
+      {
+        keywords: ["total environments", "environment count", "number of environments"],
+        response: "There are 2 different environments hosting the Power Pages."
+      },
+      {
+        keywords: ["power page details", "page names", "power page table"],
+        response: "Power Page details include names, domain names, environment names, and primary domain URLs."
+      },
+      {
+        keywords: ["power page by details", "distribution by domain", "pages per domain"],
+        response: "Each domain has 1 associated Power Page."
+      },
+      {
+        keywords: ["power page by environment", "distribution by environment", "pages per environment"],
+        response: "Each environment contains 1 Power Page."
+      },
+      {
+        keywords: ["last modified websites", "recently changed pages", "modification overview"],
+        response: "Pages were last modified in March 2024 and March 2025, one each."
+      },
+      {
+        keywords: ["website creation over time", "site created timeline", "websites by month"],
+        response: "Websites were created over two periods: March 2024 and March 2025."
+      },
+      {
+        keywords: ["filters", "filter options", "left panel filters"],
+        response: "Available filters include Environment Name, Power Page Name, and Domain Name."
+      },
+
+      //Sharepointsite analysis page
+      {
+        keywords: ["total hosts", "number of hosts", "host count"],
+        response: "There are 2 total hosts associated with SharePoint sites."
+      },
+      {
+        keywords: ["total sites", "sharepoint site count", "number of sites","sharepoint site","sharepointsites"],
+        response: "There are 18 total SharePoint sites in the analysis."
+      },
+      {
+        keywords: ["date range", "selected date range", "time filter"],
+        response: "The selected date range is from 1/1/2025 to 12/31/2025."
+      },
+      {
+        keywords: ["sharepoint sites over time", "site creation trend", "site creation over time"],
+        response: "SharePoint sites were created consistently between 01/01/2025 and 02/10/2025, with the highest creation on 02/10/2025."
+      },
+      {
+        keywords: ["host breakdown", "site host distribution", "hosts"],
+        response: "Most sites are hosted on 'natexowensites.sharepoint.com', with only 2 on 'powerpagedev02125.sharepoint.com'."
+      },
+      {
+        keywords: ["personal site ", "how many personal site", "total personal site"],
+        response: "There are 5 personal site."
+      },
+      {
+        keywords: ["private site ", "how many private site", "total private site"],
+        response: "There are 62 private site."
+      },
+      {
+        keywords: ["filters", "filter options", "left panel filters"],
+        response: "Available filters include SharePoint Site and Date Range."
+      },
+
+      //Connector analysis page
+      {
+        keywords: ["total plugins", "plugin count", "number of plugins","plugin","plugins"],
+        response: "There are 154 total plugins represented in the dashboard."
+      },
+      {
+        keywords: ["total connectors", "connector count", "number of connectors","connector","connectors"],
+        response: "There is 1 connector in total in this environment."
+      },
+      {
+        keywords: ["total entities", "entity count", "number of entities","entity","entities"],
+        response: "The dashboard reports 300 total entities."
+      },
+      {
+        keywords: ["total domain", "domain count", "number of domains"],
+        response: "There is only 1 domain listed in the dashboard."
+      },
+      {
+        keywords: ["plugin by domain", "domain-wise plugins", "plugin domain distribution"],
+        response: "All 154 plugins belong to a single domain: 'tugait12508'."
+      },
+      {
+        keywords: ["plugin by environment", "plugin environment", "environment-wise plugin distribution"],
+        response: "All 154 plugins are in the 'PowerPageDeveloper-02125' environment."
+      },
+      {
+        keywords: ["plugin per entity", "plugins distribution", "entity plugin mapping"],
+        response: "Entities like 'account' and 'activitypointer' have the highest plugin counts, with some entities having only one plugin."
+      },
+      {
+        keywords: ["allow sharing", "sharing settings", "allowsharing distribution"],
+        response: "All plugins have 'AllowSharing' set to false."
+      },
+      {
+        keywords: ["connector status", "connection status", "connectors by status"],
+        response: "100% of the connectors are in 'Connected' status."
+      },
+      {
+        keywords: ["connectors by environment", "environment-wise connectors", "connector environment distribution"],
+        response: "There is only one connector environment listed: 'Natexus Demo (default)'."
+      },
+      {
+        keywords: ["connector details", "connector environment name", "connector metadata"],
+        response: "The connector details include environment name, display name, and connector ID for the 'Natexus Demo' environment."
+      },
+      {
+        keywords: ["plugin details", "entity plugin info", "plugin metadata"],
+        response: "The plugin details table includes entity names, plugin names, and corresponding environment names."
+      },
+      {
+        keywords: ["filters", "filter options", "left panel filters"],
+        response: "Available filters include Environment Name, Domain Name, and Plugin Name."
+      },
+
+      //CRM analysis page
+      {
+        keywords: ["total plugins", "plugin count", "number of plugins"],
+        response: "There are 154 total plugins displayed on the dashboard."
+      },
+      {
+        keywords: ["total rules", "rules count", "number of rules"],
+        response: "There are 20 total rules in the environment."
+      },
+      {
+        keywords: ["total solutions", "solutions count", "number of solutions"],
+        response: "There are 521 total solutions in the environment."
+      },
+      {
+        keywords: ["total entities", "entity count", "number of entities"],
+        response: "The dashboard shows a total of 300 entities."
+      },
+      {
+        keywords: ["total power pages", "power page count", "number of power pages"],
+        response: "There are 2 Power Pages in the environment."
+      },
+      {
+        keywords: ["plugin by domain", "plugin domain distribution"],
+        response: "All 154 plugins belong to the domain 'tugait12508'."
+      },
+      {
+        keywords: ["plugin by environment", "environment-wise plugins"],
+        response: "All plugins (154) are deployed in the 'PowerPageDeveloper-02125' environment."
+      },
+      {
+        keywords: ["power page by domain", "domain-wise power pages"],
+        response: "Power Pages are distributed between domains 'org879a9a8c' and 'org812f5f8c'."
+      },
+      {
+        keywords: ["website over time", "power page growth", "page creation timeline"],
+        response: "Websites were created over two months: March 2024 and March 2025."
+      },
+      {
+        keywords: ["last modified date", "plugin modification timeline"],
+        response: "Plugins were last modified in March 2024 and March 2025, with a gap in activity during the other months."
+      },
+      {
+        keywords: ["solution visibility", "visible vs hidden solutions"],
+        response: "There are 477 visible solutions and 44 hidden ones."
+      },
+      {
+        keywords: ["managed vs unmanaged", "solution management type"],
+        response: "There are 93 managed solutions and 428 unmanaged ones."
+      },
+      {
+        keywords: ["plugin details", "plugin name list"],
+        response: "The plugin details table includes the full names of each plugin and their associated environment."
+      },
+      {
+        keywords: ["power page details", "page domain and environment info"],
+        response: "Power Page details include domain name, environment name, and registration site."
+      },
+      {
+        keywords: ["number of plugins per entity", "plugin entity distribution"],
+        response: "Entities like 'account' and 'activitypointer' have the most plugins, with some having just one."
+      },
+      {
+        keywords: ["filters", "filter options", "left panel filters"],
+        response: "Available filters include Environment Name and Plugin Name."
+      },
+      {
+        keywords: ["solution visibility", "invisible vs visible", "visible solutions"],
+        response: "The dashboard shows 477 invisible solutions and 44 visible ones."
+      },
+      {
+        keywords: ["managed vs unmanaged", "solution types", "solution management status"],
+        response: "There are 93 managed solutions and 14 unmanaged solutions."
+      },
+      {
+        keywords: ["solution details", "solution names", "solution description"],
+        response: "The Solution Details table lists names and descriptions of solutions such as 'Access Team', 'Activities', and 'AI Models'."
+      },
+      {
+        keywords: ["business rules by domain", "domain-wise business rule distribution"],
+        response: "Business rules are split between 'org879a9a8c' and 'org812f5f8c', with 18 and 20 rules respectively."
+      },
+      {
+        keywords: ["business rule per entity", "entity-wise business rules"],
+        response: "Entities such as 'account', 'contact', and 'opportunity' each have between 1 and 4 business rules applied."
+      },
+
+      //DLP Policy analysis page
+      {
+        keywords: ["number of workloads", "workload count", "dlp workloads","workload",'workloads'],
+        response: "There are a total of 9 workloads listed in the DLP Analysis."
+      },
+      {
+        keywords: ["dlp policy type count", "number of policy types"],
+        response: "There is 1 DLP policy type present in the dashboard."
+      },
+      {
+        keywords: ["dlp policy count", "number of dlp policies"],
+        response: "The dashboard shows 3 DLP policies in total."
+      },
+      {
+        keywords: ["dlp distribution status count", "distribution status count"],
+        response: "There is 1 DLP distribution status, which is marked as Pending."
+      },
+      {
+        keywords: ["dlp policy over time", "policy creation timeline"],
+        response: "DLP policies were created on 05/04/2019, 06/04/2019, and 07/04/2019."
+      },
+      {
+        keywords: ["dlp enabled distribution", "dlp enabled status"],
+        response: "All DLP policies are enabled as shown in the donut chart."
+      },
+      {
+        keywords: ["dlp distribution status", "dlp status", "pending policies"],
+        response: "All DLP policies have a distribution status of 'Pending'."
+      },
+      {
+        keywords: ["dlp mode", "dlp mode distribution", "dlp enable mode"],
+        response: "The DLP mode distribution shows 100% policies are in 'Enable' mode."
+      },
+      {
+        keywords: ["dlp type breakdown", "dlp type count"],
+        response: "There are 3 DLPs under the single DLP type displayed."
+      },
+      {
+        keywords: ["filters", "filter options", "left panel filters"],
+        response: "Available filters include DLP Name, Distribution Status, and Created By."
+      }
+
+    ];
+
+const CHAT_KEY = "chatHistoryWithTtl";
+  const TTL_MS   = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
+
+  // On load: try to load & validate history
+  window.addEventListener("DOMContentLoaded", () => {
+    const raw = localStorage.getItem(CHAT_KEY);
+    if (raw) {
+      try {
+        const { timestamp, messages } = JSON.parse(raw);
+        if (Date.now() - timestamp < TTL_MS) {
+          // still valid
+          for (const { message, sender } of messages) {
+            displayMessage(message, sender, false);
+          }
+        } else {
+          // expired
+          localStorage.removeItem(CHAT_KEY);
+        }
+      } catch (e) {
+        // parse error: reset
+        localStorage.removeItem(CHAT_KEY);
+      }
+    }
+  });
+
+  function sendMessage() {
+    const input = document.getElementById("input");
+    const text  = input.value.trim();
+    if (!text) return;
+
+    // show & save user
+    displayMessage(text, "user");
+    appendToHistory(text, "user");
+
+    // bot reply
+    const reply = getBotResponse(text);
+    displayMessage(reply, "bot");
+    appendToHistory(reply, "bot");
+
+    input.value = "";
+  }
+
+  function displayMessage(message, sender, scroll = true) {
+    const chatbox = document.getElementById("chatbox");
+    const el = document.createElement("div");
+    el.className    = `message ${sender}`;
+    el.textContent = `${sender === "user" ? "You" : "Bot"}: ${message}`;
+    chatbox.appendChild(el);
+    if (scroll) chatbox.scrollTop = chatbox.scrollHeight;
+  }
+
+  function getBotResponse(msg) {
+    const lower = msg.toLowerCase();
+    for (const { keywords, response } of chatbotData) {
+      if (keywords.some(k => lower.includes(k.toLowerCase()))) {
+        return response;
+      }
+    }
+    return "I'm not sure how to respond to that. Can you rephrase?";
+  }
+
+  // Append one message + sender, and refresh timestamp
+  function appendToHistory(message, sender) {
+    let record = { timestamp: Date.now(), messages: [] };
+    try {
+      record = JSON.parse(localStorage.getItem(CHAT_KEY)) || record;
+    } catch { /* ignore parse errors */ }
+
+    record.messages.push({ message, sender });
+    record.timestamp = record.timestamp || Date.now();
+    localStorage.setItem(CHAT_KEY, JSON.stringify(record));
+  }
+
+  // Clear both UI and storage
+  function clearChat() {
+    document.getElementById("chatbox").innerHTML = "";
+    document.getElementById("input").value    = "";
+    localStorage.removeItem(CHAT_KEY);
+  }
+
+  // send on Enter
+  document.getElementById("input").addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+
+  </script>
+</body>
+</html>
